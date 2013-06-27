@@ -1,0 +1,112 @@
+#!/usr/bin/env python
+from weatherpy import Response as WXResponse
+import requests
+from bs4 import BeautifulSoup
+import time
+import sys
+
+
+class Irrigation(object):
+    script_name = "Ryan's Middleton Weather Script"
+    location_code = 2450362 #Middleton, WI
+    rain_codes = [3, 4, 11, 12, 45]
+    host = '192.168.10.12'
+    device_id = '23.D2.1C'
+    
+    def __init__(self):
+    
+        self.data = WXResponse(self.script_name,
+            self.location_code)
+
+    def has_rained(self):
+        pass
+
+
+    def is_raining(self):
+        
+        if self.data.condition.code in self.rain_codes:
+            return True
+            
+        return False
+
+    def will_rain_today(self):
+        condition_code_today = self.data.forecasts[0].code
+        
+        if condition_code_today in self.rain_codes:
+            return True
+        
+        return False
+
+
+    def start(self):
+        
+        if self.is_raining():
+            print "It's raining. Irrigation not needed."
+            return
+            
+        if self.will_rain_today():
+            print "It's going to rain today. Irrigation not needed."
+        
+        print "It's %s. Forecasting %s. Starting irrigation." % (self.data.condition.text, self.data.forecasts[0].text)
+        
+        r = requests.get('http://%s/0?0262%s0F11FF=I=3' % (self.host,
+            self.device_id.replace('.', '')))
+            
+        print "Irrigation started"
+        
+    def stop(self):
+        
+        print "Stopping irrigation"
+        
+        r = requests.get('http://%s/0?0262%s0F13FF=I=3' % (self.host,
+            self.device_id.replace('.', '')))
+            
+        print "Irrigation stopped"
+    
+    def get_status(self):
+        
+        time.sleep(1)
+        
+        r = requests.get('http://%s/0?0262%s0F19FF=I=3' % (self.host,
+            self.device_id.replace('.', '')))
+            
+        time.sleep(1)
+            
+        r = requests.get('http://%s/buffstatus.xml' % self.host)
+        
+        if len(r.text) < 72:
+            self.get_status()
+        
+        soup = BeautifulSoup(r.text)
+        
+        status_str = soup.find('bs').text
+        
+        print self._parse_xml_status(status_str)
+        
+    
+    def _parse_xml_status(self, status_str):
+        
+        return {
+            'last_command_string': status_str[:16],
+            'last_command': status_str[12:14],
+            'response_flag': status_str[16:18],
+            'return_flag': status_str[18:22],
+            'target_device': status_str[22:28],
+            'smartlinc_id': status_str[28:34],
+            'ack': status_str[28:29],
+            'hop_count': status_str[29:30],
+            'db_delta': status_str[30:32],
+            'level': status_str[32:34],
+        }
+        
+        
+if __name__ == "__main__":
+    obj = Irrigation()
+    
+    if hasattr(obj, sys.argv[1]):
+        getattr(obj, sys.argv[1])()
+
+
+# On: http://192.168.10.12/0?026223D21C0F11FF=I=3
+# 
+# Off: http://192.168.10.12/0?026223D21C0F13FF=I=3

@@ -15,5 +15,5 @@ setup(
         'beautifulsoup4==4.2.1',
         'requests==1.2.3',
     ],
-    scripts=['bin/insteon', ],
+    scripts=['bin/insteoninc', ],
 )

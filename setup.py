@@ -10,7 +10,7 @@ setup(
     license = "BSD",
     keywords = "Insteon automation",
     url = "http://packages.python.org/an_example_pypi_project",
-    packages=['insteon',],
+    packages=['insteonic',],
     install_requires = [
         'beautifulsoup4==4.2.1',
         'requests==1.2.3',

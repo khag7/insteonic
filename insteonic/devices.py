@@ -2,6 +2,7 @@ import requests
 from commands import *
 import ConfigParser
 import sys
+import os
 
 class Device(object):
     device_id = None
@@ -104,10 +105,9 @@ class ClimateControlDevice(Device):
         
     def set_program_cool(self):
         self.send_command('set_program_cool')
-        
+
 try:
-    import sys
-    sys.path.append(os.path.expanduser('~/.insteon/'))
+    sys.path.append(os.path.expanduser('~/.insteonic/'))
     from local_devices import *
 except:
     pass

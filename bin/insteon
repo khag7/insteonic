@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+import devices
+from devices import *
+from commands import *
+import argparse
+import os
+
+
+class InsteonCommand(object):
+    
+    def __init__(self):
+        
+        self.config = self._get_config()
+        
+        self.parser = argparse.ArgumentParser(
+            description='Send commands to Insteon devices')
+            
+        self.subparsers = self.parser.add_subparsers(
+            help='available devices')
+        
+        for device in self.config.get('controller', 'devices').split(','):
+            self._set_device_commands(device)
+            
+        args = self.parser.parse_args()
+        
+        device_instance = self._get_device_class(args.device)(
+            host=self.config.get('controller', 'host'),
+            device_id=self.config.get(args.device, 'id'))
+        
+        getattr(device_instance, args.command)()
+        
+
+    def _set_device_commands(self, device):
+        """ Sets the command arguments """
+        
+        device_config = self.config.items(device)
+        device_instance = self._get_device_class(device)()
+        
+        device_parser = self.subparsers.add_parser(device)
+        device_parser.set_defaults(device=device)
+                    
+        cmd_arg = device_parser.add_argument('command',
+                            help='The command to send to the device',
+                            default='',
+                            choices=device_instance.commands.keys()
+                            )
+                            
+    def _get_device_class(self, device):
+        return getattr(devices, self.config.get(device, 'type'))
+
+       
+    def _get_config(self):
+        """ Gets a config object """
+        
+        config = ConfigParser.ConfigParser()
+        
+        try:
+            config.read(os.path.expanduser('~/.config/insteon.config.ini'))
+        except:
+            config.read('config.default.ini')
+            
+        return config
+        
+
+if __name__ == "__main__":
+    command = InsteonCommand()

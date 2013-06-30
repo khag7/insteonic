@@ -4,6 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 import time
 import sys
+from commands import *
 
 
 class Irrigation(object):
@@ -106,7 +107,3 @@ if __name__ == "__main__":
     if hasattr(obj, sys.argv[1]):
         getattr(obj, sys.argv[1])()
 
-
-# On: http://192.168.10.12/0?026223D21C0F11FF=I=3
-# 
-# Off: http://192.168.10.12/0?026223D21C0F13FF=I=3

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import from ..insteonic import devices
+from ..insteonic import devices
 from ..insteonic.devices import *
 from ..insteonic.commands import *
 import argparse

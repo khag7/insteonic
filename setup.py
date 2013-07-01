@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name = "insteonic",
-    version = "0.3",
+    version = "0.4",
     author = "Ryan Bagwell",
     author_email = "ryan@ryanbagwell.com",
     description = ("A Python command-line interface for Insteon's smartlinc controller"),

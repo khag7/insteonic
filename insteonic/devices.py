@@ -21,6 +21,11 @@ class Device(object):
         
         r = requests.get('http://%s/0?%s=I=3' % (self.host,
             cmd_str))
+            
+        if r.status_code == 200:
+            cmd_obj.success()
+        else:
+            cmd_obj.error()
     
     def _set_host(self):
         

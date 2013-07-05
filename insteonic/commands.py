@@ -9,6 +9,7 @@ class StandardCommand(object):
     message_flags = '00'
     command1 = '00'
     command2 = '00'
+    
 
     bytes = {
         1: '02', #Start of command string
@@ -31,6 +32,14 @@ class StandardCommand(object):
         self.bytes[4] = device_id[2:4]
         self.bytes[5] = device_id[4:6]
         return ''.join(self.bytes.values())
+        
+    def success(self):
+        """A callback to handle a successful command """
+        print "ok"
+
+    def error(self):
+        """A callback to handle a successful command """
+        print "error"
         
 class ExtendedCommand(StandardCommand):
     """ The extended insteon comand.

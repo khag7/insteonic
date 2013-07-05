@@ -3,6 +3,8 @@ from commands import *
 import ConfigParser
 import sys
 import os
+import socket
+import binascii
 
 class Device(object):
     device_id = None
@@ -17,16 +19,18 @@ class Device(object):
             
     def send_command(self, cmd=None, **kwargs):
         cmd_obj = self.commands[cmd](**kwargs)
-        cmd_str = cmd_obj.get_command_string(self.device_id)
+
+        cmd_str = cmd_obj.get_raw_command_string(self.device_id)
         
-        r = requests.get('http://%s/0?%s=I=3' % (self.host,
-            cmd_str))
-            
-        if r.status_code == 200:
-            cmd_obj.success()
-        else:
-            cmd_obj.error()
-    
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((self.host, 9761))
+        s.send(cmd_str)        
+        response_str = s.recv(24)
+        
+        cmd_obj.handle_response(response_str)
+        cmd_obj.handle_response(response_str)
+
+
     def _set_host(self):
         
         if host is not None:

@@ -1,3 +1,5 @@
+import binascii
+
 
 class StandardCommand(object):
     """ The standard insteon comand.
@@ -33,6 +35,15 @@ class StandardCommand(object):
         self.bytes[5] = device_id[4:6]
         return ''.join(self.bytes.values())
         
+    def get_raw_command_string(self, device_id='000000'):
+        self.get_command_string(device_id)
+        return ''.join([str(binascii.unhexlify(v)) for v in self.bytes.values()])
+
+    def handle_response(self, response_str):
+        """ A handler for the response """
+        print binascii.hexlify(response_str)
+        self.success()
+
     def success(self):
         """A callback to handle a successful command """
         print "ok"

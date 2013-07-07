@@ -11,7 +11,6 @@ class StandardCommand(object):
     message_flags = '00'
     command1 = '00'
     command2 = '00'
-    
 
     bytes = {
         1: '02', #Start of command string
@@ -40,9 +39,22 @@ class StandardCommand(object):
         return ''.join([str(binascii.unhexlify(v)) for v in self.bytes.values()])
 
     def handle_response(self, response_str):
-        """ A handler for the response """
-        print binascii.hexlify(response_str)
-        self.success()
+        """ A handler for the response 
+            The last byte should be 06, 
+            which indicates success """
+        
+        result = binascii.hexlify(response_str)[-2:]
+        
+        try:
+            result = int(result)
+        except:
+            pass
+            
+        if result == 6:
+            self.success()
+        
+        else:
+            self.error()
 
     def success(self):
         """A callback to handle a successful command """

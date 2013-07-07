@@ -28,7 +28,7 @@ class Device(object):
         response_str = s.recv(24)
         
         cmd_obj.handle_response(response_str)
-        cmd_obj.handle_response(response_str)
+      
 
 
     def _set_host(self):

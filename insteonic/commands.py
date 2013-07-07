@@ -1,4 +1,5 @@
 import binascii
+import sys
 
 
 class StandardCommand(object):
@@ -23,18 +24,25 @@ class StandardCommand(object):
         8: '00', #command2
     }
     
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.bytes[6] = self.message_flags
         self.bytes[7] = self.command1
         self.bytes[8] = self.command2
         
     def get_command_string(self, device_id='000000'):
+        """ Assembles the required message bytes
+            into a single hexidecimal string"""
+            
         self.bytes[3] = device_id[:2]
         self.bytes[4] = device_id[2:4]
         self.bytes[5] = device_id[4:6]
         return ''.join(self.bytes.values())
         
     def get_raw_command_string(self, device_id='000000'):
+        """ Takes the assembled hexidecimal string
+            and converts it into a string of raw ascii
+            bytes to use in serial commands"""
+        
         self.get_command_string(device_id)
         return ''.join([str(binascii.unhexlify(v)) for v in self.bytes.values()])
 
@@ -43,10 +51,10 @@ class StandardCommand(object):
             The last byte should be 06, 
             which indicates success """
         
-        result = binascii.hexlify(response_str)[-2:]
+        result_code = binascii.hexlify(response_str)[-2:]
         
         try:
-            result = int(result)
+            result = int(result_code)
         except:
             pass
             
@@ -54,16 +62,18 @@ class StandardCommand(object):
             self.success()
         
         else:
-            self.error()
+            self.error(result_code)
 
     def success(self):
         """A callback to handle a successful command """
-        print "ok"
+        
+        print "success"
 
-    def error(self):
+    def error(self, error_code=None):
         """A callback to handle a successful command """
         print "error"
-        
+
+
 class ExtendedCommand(StandardCommand):
     """ The extended insteon comand.
         It consists of 22 bytes and depends
@@ -92,8 +102,8 @@ class ExtendedCommand(StandardCommand):
         
 class On(StandardCommand):
     """ Sends the on command to the device"""
-    description = "Turn the device on"
     
+    description = "Turn the device on"
     message_flags = '0F'
     command1 = '11'
     command2 = 'FF'
@@ -101,8 +111,33 @@ class On(StandardCommand):
 
 class Off(On):
     """ Sends the off commands to the device """
+    
     description = "Turn the device off"
     command1 = '13'
+    
+class OnTo(On):
+    """ Brightens the device to the
+        specified level """
+        
+    description = "Turn the device on and set the brightness to the specified level"
+    
+    def __init__(self, **kwargs):
+        self.command2 = str(int(kwargs['level'], 16))
+        super(OnTo, self).__init__(**kwargs)
+        
+        
+class Brighten(On):
+    """ Raise the brightness leve one step """
+    
+    description = "Raise the brightness one step"
+    command1 = '15'
+    
+class Dim(On):
+    """ Lower the brightness level one step """
+
+    description = "Lower the brightness level one step"
+    command1 = '16'
+
 
 
 class ThermostatCommand(ExtendedCommand):
@@ -111,7 +146,7 @@ class ThermostatCommand(ExtendedCommand):
     command1 = '6B'
     
     def __init__(self, **kwargs):
-        
+
         try:
             self.set_last_byte()
         except:
@@ -120,8 +155,19 @@ class ThermostatCommand(ExtendedCommand):
         super(ThermostatCommand, self).__init__(**kwargs)
         
     def set_last_byte(self):
-        last_byte = 256 - (int(self.command1, 16) + int(self.command2, 16))
-        self.extended_bytes[22] = hex(last_byte).replace('0x', '').upper()
+        
+        last_byte = 256 - (int(self.command1, 16) + int(self.command2, 16))        
+
+        if last_byte < 0:
+            last_byte = 512 - (int(self.command1, 16) + int(self.command2, 16))  
+            
+
+        last_byte = hex(last_byte).replace('0x', '').upper()
+                
+        if len(last_byte) == 1:
+            last_byte = '0%s' % last_byte
+
+        self.extended_bytes[22] = last_byte
 
 
 class ThermostatSetHeat(ThermostatCommand):
@@ -192,27 +238,25 @@ class ThermostatSetCoolPoint(ThermostatCommand):
         system will begin cooling.
         
         Takes one integer argument: temperature. """
+        
     description = "Set the temperature at the the system will begin cooling"
-    arguments = ['temperature']
     command1 = '6C'
     command2 = None
     
     def __init__(self, **kwargs):
         
         try:
-            base = kwargs['temperature'] * 2
+            temperature = int(kwargs.get('temperature'))
+        except:
+            sys.exit("Invalid temperature")
+        
+        try:
+            base = temperature * 2
             self.command2 = hex(base).replace('0x', '').upper()
         except:
             pass
-        
-        super(ThermostatSetCoolPoint, self).__init__(**kwargs)
 
-    def set_last_byte(self):
-        """ The last command is the difference of
-            the requested temperature * 2 and 404
-            for some reason """
-        last_byte = hex(404 - int(self.command2, 16)).replace('0x', '').upper()
-        self.extended_bytes[22] = last_byte
+        super(ThermostatSetCoolPoint, self).__init__(**kwargs)
 
 class ThermostatSetHeatPoint(ThermostatSetCoolPoint):
     """ Sets the temperature at which the

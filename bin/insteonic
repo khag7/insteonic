@@ -26,12 +26,13 @@ class InsteonCommand(object):
         device_instance = self._get_device_class(args.device)(
             host=self.config.get('controller', 'host'),
             device_id=self.config.get(args.device, 'id'))
-        
-        getattr(device_instance, args.command)()
+
+        getattr(device_instance, args.command)(**args.__dict__)
         
 
     def _set_device_commands(self, device):
-        """ Sets the command arguments """
+        """ Sets the command arguments for each
+            device specified in the ini file """
         
         device_config = self.config.items(device)
         device_instance = self._get_device_class(device)()
@@ -45,12 +46,22 @@ class InsteonCommand(object):
                             choices=device_instance.commands.keys()
                             )
                             
+        for option in device_instance.options:
+            device_parser.add_argument('--%s' % option['name'],
+                        help=option['description'],
+                        default=option['default'],
+                        )
+                            
     def _get_device_class(self, device):
+        """ Gets the class name of the specified device """
+        
         return getattr(devices, self.config.get(device, 'type'))
 
        
     def _get_config(self):
-        """ Gets a config object """
+        """ Gets the config object specified in 
+            ~/.insteonic/config.ini or the default
+            config file in ../config/config.default.ini """
         
         config = ConfigParser.ConfigParser()
         

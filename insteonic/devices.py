@@ -11,9 +11,10 @@ class Device(object):
     host = '0.0.0.0'
     config = None
     commands = {}
+    options = []
     description = 'No descrption available.'
                 
-    def __init__(self, host=None, device_id=''):
+    def __init__(self, host=None, device_id='', **kwargs):
         self.host = host
         self.device_id = device_id.replace('.', '')
             
@@ -29,8 +30,6 @@ class Device(object):
         
         cmd_obj.handle_response(response_str)
       
-
-
     def _set_host(self):
         
         if host is not None:
@@ -47,11 +46,6 @@ class Device(object):
             
         return config
         
-class DimmableLightingControlDevice(Device):
-    """ A geneic class that contains commands
-        for dimmable lighting control devices. """
-    pass
-
 
 class SwitchedLightingControlDevice(Device):
     """ A geneic class that contains commands
@@ -63,12 +57,46 @@ class SwitchedLightingControlDevice(Device):
         'on': On,
         'off': Off,
     }
-    
-    def on(self):
+
+    def on(self, **kwargs):
         self.send_command('on')
         
-    def off(self):
+    def off(self, **kwargs):
         self.send_command('off')
+
+
+class DimmableLightingControlDevice(SwitchedLightingControlDevice):
+    """ A geneic class that contains commands
+        for dimmable lighting control devices. """
+    
+    commands = {
+        'onto': OnTo,
+        'brighten': Brighten,
+        'dim': Dim,
+    }
+    
+    options = [
+        {
+            'name': 'level',
+            'description': 'The level for the lighting device',
+            'default': '100',
+            'type': str
+        },
+    ]
+    
+    def __init__(self, **kwargs):
+        parent_commands = super(DimmableLightingControlDevice, self).commands
+        self.commands = dict(parent_commands.items() + self.commands.items())
+        super(DimmableLightingControlDevice, self).__init__(**kwargs)
+        
+    def onto(self, **kwargs):
+        self.send_command('onto', **kwargs)
+        
+    def dim(self, **kwargs):
+        self.send_command('dim')
+        
+    def brighten(self, **kwargs):
+        self.send_command('brighten')
 
 
 class IrrigationControlDevice(Device):
@@ -91,28 +119,36 @@ class ClimateControlDevice(Device):
         'set_program_cool': ThermostatSetProgramCool
     }
     
-    def off(self):
+    options = [
+        {
+            'name': 'temperature',
+            'description': 'The temerature to set for thermostat devices',
+            'default': ''
+        }
+    ]
+    
+    def off(self, **kwargs):
         self.send_command('off')
         
-    def cool(self):
+    def cool(self, **kwargs):
         self.send_command('cool')
 
-    def heat(self):
+    def heat(self, **kwargs):
         self.send_command('heat')
         
-    def auto(self):
+    def auto(self, **kwargs):
         self.send_command('auto')
         
-    def fan_on(self):
+    def fan_on(self, **kwargs):
         self.send_command('fan_on')
         
-    def fan_auto(self):
+    def fan_auto(self, **kwargs):
         self.send_command('fan_auto')
         
-    def set_cool_point(self, temperature):
-        self.send_command('set_cool_point', temperature=temperature)
+    def set_cool_point(self, **kwargs):
+        self.send_command('set_cool_point', **kwargs)
         
-    def set_program_cool(self):
+    def set_program_cool(self, **kwargs):
         self.send_command('set_program_cool')
 
 try:

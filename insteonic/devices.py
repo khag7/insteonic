@@ -147,6 +147,9 @@ class ClimateControlDevice(Device):
         
     def set_cool_point(self, **kwargs):
         self.send_command('set_cool_point', **kwargs)
+
+    def set_heat_point(self, **kwargs):
+        self.send_command('set_heat_point', **kwargs)
         
     def set_program_cool(self, **kwargs):
         self.send_command('set_program_cool')

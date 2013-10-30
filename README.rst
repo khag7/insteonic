@@ -10,18 +10,39 @@ Install with PIP::
 
     pip install -e git+git@github.com:ryanbagwell/insteonic.git#egg=insteonic
 
-In your home directory, create a directory called .insteonic, and create a config.ini file inside it.
 
-Use the default config.ini file that ships with the package to finish your setup.
+
+Configuration
+-------------
+
+In your home directory, create a directory called .insteonic, and create a config.ini file inside it. Then set up your devices. Example:
+
+	[controller]
+	host: 192.168.1.12
+	devices: hvac,irrigation,porchlight
+
+	[hvac]
+	id: 1F.16.D4
+	type: ClimateControlDevice
+
+	[porchlight]
+	id: 20.9A.33
+	type: SwitchedLightingControlDevice
+
 
 Usage
 -----
 
-From the command line, type the following::
+After configurating your devices, you're ready to send come commands. From the command line, type the following::
 
-  insteonic
+	insteonic
 
-Additional examples::
+List available commands for a particular device::
+
+ 	insteonic porchlight (or other device name)
+
+
+Send a command::
 
   insteonic hvac cool
 

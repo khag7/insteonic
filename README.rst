@@ -15,7 +15,7 @@ Install with PIP::
 Configuration
 -------------
 
-In your home directory, create a directory called .insteonic, and create a config.ini file inside it. Then set up your devices. Example:
+In your home directory, create a directory called .insteonic, and create a config.ini file inside it. Then set up your devices. Example::
 
 	[controller]
 	host: 192.168.1.12
